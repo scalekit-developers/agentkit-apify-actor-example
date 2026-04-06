@@ -54,11 +54,18 @@
       "description": "Scalekit OAuth client secret",
       "isSecret": true
     },
-    "notionIdentifier": {
-      "title": "Notion Account Identifier",
+    "notionUserEmail": {
+      "title": "Notion User Email",
       "type": "string",
-      "description": "Identifier used when connecting the Notion account in Scalekit",
-      "default": "shared-notion"
+      "description": "Email of the user authorizing Notion. Used as the Scalekit connected-account identifier. If the account is not yet authorized, a magic link is generated and surfaced as output — open it to connect your Notion workspace."
+    },
+    "authTimeoutSeconds": {
+      "title": "Auth Timeout (seconds)",
+      "type": "integer",
+      "description": "How long the actor waits for the user to complete Notion authorization via the magic link before failing (default: 300 = 5 minutes).",
+      "default": 300,
+      "minimum": 30,
+      "maximum": 900
     },
     "youtubeIdentifier": {
       "title": "YouTube Account Identifier",
@@ -83,5 +90,5 @@
       "maximum": 50
     }
   },
-  "required": ["llmApiKey", "scalekitEnvUrl", "scalekitClientId", "scalekitClientSecret"]
+  "required": ["notionUserEmail", "llmApiKey", "scalekitEnvUrl", "scalekitClientId", "scalekitClientSecret"]
 }
