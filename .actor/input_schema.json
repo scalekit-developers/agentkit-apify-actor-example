@@ -6,7 +6,8 @@
     "task": {
       "title": "Task",
       "type": "string",
-      "description": "Natural language task for the agent. Can involve Notion operations, YouTube research, or both. Examples: 'List the 5 most recently edited pages in my Notion workspace' or 'Search YouTube for clerk creators and append the top 10 channels to my Marketing Research page'.",
+      "description": "Natural language task for the agent. Can involve Notion operations, YouTube research, or both.",
+      "placeholder": "e.g. List the 5 most recently edited pages in my Notion workspace\ne.g. Search YouTube for clerk creators and append the top 10 channels to my Marketing Research page",
       "editor": "textarea"
     },
     "llmBaseUrl": {
@@ -34,6 +35,7 @@
       "title": "Notion User Email",
       "type": "string",
       "description": "Email of the user authorizing Notion. Used as the Scalekit connected-account identifier. If the account is not yet authorized, a magic link is generated and surfaced as output — open it to connect your Notion workspace.",
+      "placeholder": "e.g. you@yourcompany.com",
       "editor": "textfield"
     },
     "authTimeoutSeconds": {
@@ -47,8 +49,9 @@
     "youtubeIdentifier": {
       "title": "YouTube Account Identifier",
       "type": "string",
-      "description": "Scalekit identifier for the shared YouTube connected account. Only needed for tasks that involve YouTube research.",
+      "description": "Scalekit identifier for the shared YouTube connected account. Only needed for tasks that involve YouTube research. Leave as default unless you have a dedicated YouTube connection.",
       "default": "shared-youtube",
+      "placeholder": "shared-youtube",
       "editor": "textfield"
     },
     "maxIterations": {
