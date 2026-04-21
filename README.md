@@ -18,7 +18,7 @@ The agent interprets a free-form task and calls the appropriate tools:
 - `"Read the content of the page titled Product Roadmap"`
 
 **YouTube → Notion example:**
-- `"Search YouTube for clerk creators and append the top 10 channels to my Marketing Research page"`
+- `"Search YouTube for Python tutorial channels and append the top 10 to my Research page"`
 
 For YouTube research, the agent:
 1. Finds the target Notion page by name using `notion_data_fetch`
@@ -121,7 +121,7 @@ Scalekit credentials (`SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT
 
 | Field | Required | Default | Description |
 |---|---|---|---|
-| `task` | Yes | — | Natural language task, e.g. `"Search YouTube for clerk creators and append the top 10 channels to my Marketing Research page"` |
+| `task` | Yes | — | Natural language task, e.g. `"Search YouTube for Python tutorial channels and append the top 10 to my Research page"` |
 | `notionUserEmail` | Yes | — | Email used as the Scalekit identifier for the user's Notion connected account |
 | `llmApiKey` | Yes | — | API key for the LLM endpoint |
 | `llmBaseUrl` | No | `https://llm.scalekit.cloud` | OpenAI-compatible endpoint base URL |
