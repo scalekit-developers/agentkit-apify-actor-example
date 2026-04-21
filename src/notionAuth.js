@@ -36,7 +36,7 @@ export async function ensureNotionConnected(scalekitActions, email, {
     identifier: email,
   });
 
-  await onMagicLink(link);
+  const markDone = await onMagicLink(link);
 
   const timeoutSec = Math.round(timeoutMs / 1000);
   console.log(`Waiting up to ${timeoutSec}s for Notion authorization...`);
@@ -58,6 +58,7 @@ export async function ensureNotionConnected(scalekitActions, email, {
     const polledAccount = pollResp.connectedAccount ?? pollResp;
 
     if (polledAccount.status === ACTIVE) {
+      markDone?.();
       await Actor.setStatusMessage('Notion authorized — proceeding with research.');
       console.log(`Notion account for "${email}" is now ACTIVE.`);
       return polledAccount.id;

@@ -36,7 +36,7 @@ export async function ensureYouTubeConnected(scalekitActions, identifier, {
     identifier,
   });
 
-  await onMagicLink(link);
+  const markDone = await onMagicLink(link);
 
   const timeoutSec = Math.round(timeoutMs / 1000);
   console.log(`Waiting up to ${timeoutSec}s for YouTube authorization...`);
@@ -56,6 +56,7 @@ export async function ensureYouTubeConnected(scalekitActions, identifier, {
     const polledAccount = pollResp.connectedAccount ?? pollResp;
 
     if (polledAccount.status === ACTIVE) {
+      markDone?.();
       await Actor.setStatusMessage('YouTube authorized — proceeding.');
       console.log(`YouTube account "${identifier}" is now ACTIVE.`);
       return polledAccount.id;

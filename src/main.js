@@ -19,6 +19,7 @@ import { DEFAULT_MODEL } from './llm.js';
 import { runAgent } from './agent.js';
 import { ensureNotionConnected } from './notionAuth.js';
 import { ensureYouTubeConnected } from './youtubeAuth.js';
+import { serveAuthPage } from './authServer.js';
 
 await Actor.init();
 
@@ -59,28 +60,32 @@ try {
   await ensureNotionConnected(scalekit.actions, notionIdentifier, {
     timeoutMs: authTimeoutSeconds * 1000,
     onMagicLink: async (link) => {
-      console.log(`\nNotion authorization required for "${notionIdentifier}".`);
-      console.log(`Magic link: ${link}\n`);
+      const { liveViewUrl, markDone } = await serveAuthPage(link, 'Notion');
+      console.log(`\nNotion auth required. Open: ${liveViewUrl}\n`);
       await Actor.setValue('OUTPUT', {
         status: 'AWAITING_NOTION_AUTH',
-        notionIdentifier,
+        authPageUrl: liveViewUrl,
         magicLink: link,
-        message: `Open the magic link to authorize Notion. The actor will continue automatically once you complete authorization.`,
+        message: 'Open authPageUrl in your browser to authorize Notion.',
       });
+      await Actor.setStatusMessage(`ACTION REQUIRED: Authorize Notion → ${liveViewUrl}`);
+      return markDone;
     },
   });
 
   await ensureYouTubeConnected(scalekit.actions, youtubeIdentifier, {
     timeoutMs: authTimeoutSeconds * 1000,
     onMagicLink: async (link) => {
-      console.log(`\nYouTube authorization required for "${youtubeIdentifier}".`);
-      console.log(`Magic link: ${link}\n`);
+      const { liveViewUrl, markDone } = await serveAuthPage(link, 'YouTube');
+      console.log(`\nYouTube auth required. Open: ${liveViewUrl}\n`);
       await Actor.setValue('OUTPUT', {
         status: 'AWAITING_YOUTUBE_AUTH',
-        youtubeIdentifier,
+        authPageUrl: liveViewUrl,
         magicLink: link,
-        message: `Open the magic link to authorize YouTube for "${youtubeIdentifier}". The actor will continue automatically once you complete authorization.`,
+        message: 'Open authPageUrl in your browser to authorize YouTube.',
       });
+      await Actor.setStatusMessage(`ACTION REQUIRED: Authorize YouTube → ${liveViewUrl}`);
+      return markDone;
     },
   });
 
