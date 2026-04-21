@@ -1,8 +1,8 @@
 {
   "actorSpecification": 1,
-  "name": "notion-ai-agent",
-  "title": "Notion AI Agent",
-  "description": "AI agent that reads and creates Notion pages using natural language instructions. Powered by Claude/GPT-4o and authenticated via Scalekit.",
+  "name": "notion-youtube-agent",
+  "title": "Notion + YouTube AI Agent",
+  "description": "AI agent that handles Notion operations and YouTube channel research from a single natural language task. Authenticated via Scalekit.",
   "version": "1.0",
   "input": "./input_schema.json",
   "output": "./dataset_schema.json",
