@@ -1,5 +1,6 @@
 {
   "actorSpecification": 1,
+  "actorOutputSchemaVersion": 1,
   "fields": [
     {
       "name": "task",
@@ -18,12 +19,6 @@
       "title": "Steps",
       "type": "array",
       "description": "Tool calls and intermediate steps taken by the agent"
-    },
-    {
-      "name": "llmProvider",
-      "title": "LLM Provider",
-      "type": "string",
-      "description": "The LLM provider used (anthropic or openai)"
     },
     {
       "name": "model",
