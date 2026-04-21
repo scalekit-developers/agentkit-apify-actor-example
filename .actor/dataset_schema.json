@@ -1,30 +1,28 @@
 {
   "actorSpecification": 1,
   "actorOutputSchemaVersion": 1,
-  "fields": [
-    {
-      "name": "task",
+  "title": "Notion YouTube Agent Output",
+  "description": "Output produced by the Notion + YouTube AI Agent",
+  "properties": {
+    "task": {
       "title": "Task",
       "type": "string",
       "description": "The original task given to the agent"
     },
-    {
-      "name": "result",
+    "result": {
       "title": "Result",
       "type": "string",
       "description": "The final answer produced by the agent"
     },
-    {
-      "name": "steps",
+    "steps": {
       "title": "Steps",
       "type": "array",
       "description": "Tool calls and intermediate steps taken by the agent"
     },
-    {
-      "name": "model",
+    "model": {
       "title": "Model",
       "type": "string",
       "description": "The model name used"
     }
-  ]
+  }
 }
