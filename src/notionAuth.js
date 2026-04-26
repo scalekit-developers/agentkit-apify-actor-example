@@ -9,12 +9,14 @@ const STATUS_LABEL = { 0: 'UNSPECIFIED', 1: 'ACTIVE', 2: 'EXPIRED', 3: 'PENDING_
  * @param {object} opts
  * @param {number}   opts.pollIntervalMs - how often to poll for auth status (default: 5000 ms)
  * @param {number}   opts.timeoutMs      - max time to wait for authorization (default: 300 000 ms = 5 min)
+ * @param {string}   opts.userVerifyUrl  - URL Scalekit redirects to after OAuth in B2B verification mode
  * @param {Function} opts.onMagicLink    - async callback(link: string) invoked once when the magic link is ready
  * @returns {Promise<string>} Scalekit connectedAccountId once the account is ACTIVE
  */
 export async function ensureNotionConnected(scalekitActions, email, {
   pollIntervalMs = 5_000,
   timeoutMs = 300_000,
+  userVerifyUrl,
   onMagicLink = async () => {},
 } = {}) {
   const resp = await scalekitActions.getOrCreateConnectedAccount({
@@ -34,6 +36,7 @@ export async function ensureNotionConnected(scalekitActions, email, {
   const { link } = await scalekitActions.getAuthorizationLink({
     connectionName: 'notion',
     identifier: email,
+    ...(userVerifyUrl ? { userVerifyUrl } : {}),
   });
 
   const markDone = await onMagicLink(link);

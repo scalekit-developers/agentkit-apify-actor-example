@@ -6,6 +6,7 @@ const PORT = parseInt(process.env.ACTOR_WEB_SERVER_PORT ?? '4321', 10);
 let server = null;
 let serverReady = null;
 let html = buildWaitingPage();
+let pendingVerification = null;
 
 function escapeHtml(value) {
   return String(value)
@@ -105,7 +106,32 @@ function buildErrorPage(message) {
 async function ensureServer() {
   if (serverReady) return serverReady;
 
-  server = http.createServer((_req, res) => {
+  server = http.createServer(async (req, res) => {
+    const url = new URL(req.url ?? '/', `http://localhost:${PORT}`);
+    const authRequestId = url.searchParams.get('auth_request_id');
+
+    if (authRequestId && pendingVerification) {
+      try {
+        const { scalekitActions, identifier, serviceName } = pendingVerification;
+        const verifyResp = await scalekitActions.verifyConnectedAccountUser({
+          authRequestId,
+          identifier,
+        });
+
+        html = buildDonePage(serviceName);
+        pendingVerification = null;
+
+        const redirectUrl = verifyResp?.postUserVerifyRedirectUrl;
+        if (redirectUrl) {
+          res.writeHead(302, { Location: redirectUrl });
+          res.end();
+          return;
+        }
+      } catch (err) {
+        html = buildErrorPage(err.message);
+      }
+    }
+
     res.writeHead(200, {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-store',
@@ -149,6 +175,11 @@ export async function serveAuthPage(link, serviceName) {
     markDone: () => { html = buildDonePage(serviceName); },
     close: closeAuthServer,
   };
+}
+
+export async function serveVerifiedAuthPage(link, serviceName, { scalekitActions, identifier }) {
+  pendingVerification = { scalekitActions, identifier, serviceName };
+  return serveAuthPage(link, serviceName);
 }
 
 export async function showFinalPage(result) {

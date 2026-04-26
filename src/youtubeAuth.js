@@ -9,12 +9,14 @@ const STATUS_LABEL = { 0: 'UNSPECIFIED', 1: 'ACTIVE', 2: 'EXPIRED', 3: 'PENDING_
  * @param {object} opts
  * @param {number}   opts.pollIntervalMs
  * @param {number}   opts.timeoutMs
+ * @param {string}   opts.userVerifyUrl
  * @param {Function} opts.onMagicLink
  * @returns {Promise<string>} connectedAccountId once ACTIVE
  */
 export async function ensureYouTubeConnected(scalekitActions, identifier, {
   pollIntervalMs = 5_000,
   timeoutMs = 300_000,
+  userVerifyUrl,
   onMagicLink = async () => {},
 } = {}) {
   const resp = await scalekitActions.getOrCreateConnectedAccount({
@@ -34,6 +36,7 @@ export async function ensureYouTubeConnected(scalekitActions, identifier, {
   const { link } = await scalekitActions.getAuthorizationLink({
     connectionName: 'youtube',
     identifier,
+    ...(userVerifyUrl ? { userVerifyUrl } : {}),
   });
 
   const markDone = await onMagicLink(link);

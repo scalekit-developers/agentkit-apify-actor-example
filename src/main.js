@@ -19,7 +19,7 @@ import { DEFAULT_MODEL } from './llm.js';
 import { runAgent } from './agent.js';
 import { ensureNotionConnected } from './notionAuth.js';
 import { ensureYouTubeConnected } from './youtubeAuth.js';
-import { serveAuthPage, showErrorPage, showFinalPage, startAuthServer } from './authServer.js';
+import { serveVerifiedAuthPage, showErrorPage, showFinalPage, startAuthServer } from './authServer.js';
 
 await Actor.init();
 
@@ -61,8 +61,12 @@ try {
 
   await ensureNotionConnected(scalekit.actions, notionIdentifier, {
     timeoutMs: authTimeoutSeconds * 1000,
+    userVerifyUrl: liveViewUrl,
     onMagicLink: async (link) => {
-      const { liveViewUrl, markDone } = await serveAuthPage(link, 'Notion');
+      const { liveViewUrl, markDone } = await serveVerifiedAuthPage(link, 'Notion', {
+        scalekitActions: scalekit.actions,
+        identifier: notionIdentifier,
+      });
       console.log(`\nNotion auth required. Open: ${liveViewUrl}\n`);
       await Actor.setValue('OUTPUT', {
         status: 'AWAITING_NOTION_AUTH',
@@ -77,8 +81,12 @@ try {
 
   await ensureYouTubeConnected(scalekit.actions, youtubeIdentifier, {
     timeoutMs: authTimeoutSeconds * 1000,
+    userVerifyUrl: liveViewUrl,
     onMagicLink: async (link) => {
-      const { liveViewUrl, markDone } = await serveAuthPage(link, 'YouTube');
+      const { liveViewUrl, markDone } = await serveVerifiedAuthPage(link, 'YouTube', {
+        scalekitActions: scalekit.actions,
+        identifier: youtubeIdentifier,
+      });
       console.log(`\nYouTube auth required. Open: ${liveViewUrl}\n`);
       await Actor.setValue('OUTPUT', {
         status: 'AWAITING_YOUTUBE_AUTH',
