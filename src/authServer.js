@@ -141,7 +141,7 @@ async function ensureServer() {
 
   serverReady = new Promise((resolve, reject) => {
     server.once('error', reject);
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
       server.off('error', reject);
       resolve();
     });
@@ -151,9 +151,7 @@ async function ensureServer() {
 }
 
 export function getLiveViewUrl() {
-  const { actorId, actorRunId } = Actor.getEnv();
-  if (!actorId || !actorRunId) return `http://localhost:${PORT}`;
-  return `https://${actorId}--${actorRunId}-${PORT}.runs.apify.net`;
+  return process.env.ACTOR_WEB_SERVER_URL ?? `http://localhost:${PORT}`;
 }
 
 export async function startAuthServer() {
