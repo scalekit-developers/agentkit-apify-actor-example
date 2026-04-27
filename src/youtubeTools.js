@@ -4,6 +4,22 @@
 
 const ACTIVE = 1; // ConnectorStatus.ACTIVE
 
+function findItemsArray(value) {
+  if (!value || typeof value !== 'object') return [];
+
+  const directItems = Array.isArray(value.items) ? value.items : null;
+  if (directItems?.length > 0) return directItems;
+
+  for (const nested of Object.values(value)) {
+    if (nested && typeof nested === 'object') {
+      const items = findItemsArray(nested);
+      if (items.length > 0) return items;
+    }
+  }
+
+  return directItems ?? [];
+}
+
 /**
  * Get the active YouTube connected account ID.
  * Throws if not yet authorized.
@@ -45,12 +61,13 @@ export async function searchYouTube(scalekitActions, accountId, query, { maxResu
     toolInput,
   });
 
-  const items = result?.items ?? result?.data?.items ?? [];
+  const items = findItemsArray(result);
+  console.log(`  Search results for "${query}": ${items.length} item(s)`);
 
   return items.map((item) => ({
-    videoId: item.id?.videoId,
+    videoId: typeof item.id === 'string' ? item.id : item.id?.videoId,
     title: item.snippet?.title,
-    channelId: item.snippet?.channelId,
+    channelId: item.snippet?.channelId ?? item.id?.channelId,
     channelTitle: item.snippet?.channelTitle,
     publishedAt: item.snippet?.publishedAt,
     description: item.snippet?.description,
@@ -78,7 +95,8 @@ export async function getChannelDetails(scalekitActions, accountId, channelIds) 
       },
     });
 
-    const items = result?.items ?? result?.data?.items ?? [];
+    const items = findItemsArray(result);
+    console.log(`  Channel details fetched: ${items.length}/${batch.length}`);
 
     for (const ch of items) {
       results.push({

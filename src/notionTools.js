@@ -31,6 +31,36 @@ export const NOTION_TOOL_DEFINITIONS = [
     },
   },
   {
+    name: 'notion_page_search',
+    description:
+      'Search Notion pages by text query. Returns matching pages with their titles, IDs, and metadata. Use this to find a target page by name before reading or writing.',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'Text to search for across Notion pages',
+        },
+        page_size: {
+          type: 'number',
+          description: 'Maximum number of pages to return (1-100)',
+        },
+        start_cursor: {
+          type: 'string',
+          description: 'Cursor to fetch the next page of results',
+        },
+        sort_direction: {
+          type: 'string',
+          description: 'Direction to sort results',
+        },
+        sort_timestamp: {
+          type: 'string',
+          description: 'Timestamp field to sort results by',
+        },
+      },
+    },
+  },
+  {
     name: 'notion_page_get',
     description:
       'Get metadata and properties of a Notion page by its ID. Returns title, parent, and all page properties.',
@@ -90,6 +120,29 @@ export const NOTION_TOOL_DEFINITIONS = [
     },
   },
   {
+    name: 'notion_find_or_create_page',
+    description:
+      'Find a Notion page by exact title. If no matching page exists, create it under parent_page_id, database_id, or the configured default parent/database. Returns the page ID to use for appending content.',
+    parameters: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+          description: 'The page title to find or create',
+        },
+        parent_page_id: {
+          type: 'string',
+          description: 'Optional parent page ID used when creating the page',
+        },
+        database_id: {
+          type: 'string',
+          description: 'Optional database ID used when creating the page',
+        },
+      },
+      required: ['title'],
+    },
+  },
+  {
     name: 'notion_page_create',
     description:
       'Create a new Notion page. Use parent_page_id to create a child page, or database_id to create a database row. Do not provide both. For child pages with title: pass it in properties as {"title": {"title": [{"text": {"content": "Your Title"}}]}}. child_blocks is optional content.',
@@ -124,6 +177,24 @@ function getToolData(result) {
   return result?.data ?? result?.page ?? result;
 }
 
+function findResultsArray(value) {
+  if (!value || typeof value !== 'object') return [];
+
+  const directResults = Array.isArray(value.results) ? value.results : null;
+  const directItems = Array.isArray(value.items) ? value.items : null;
+  if (directResults?.length > 0) return directResults;
+  if (directItems?.length > 0) return directItems;
+
+  for (const nested of Object.values(value)) {
+    if (nested && typeof nested === 'object') {
+      const results = findResultsArray(nested);
+      if (results.length > 0) return results;
+    }
+  }
+
+  return directResults ?? directItems ?? [];
+}
+
 function getTitleFromRichText(items) {
   if (!Array.isArray(items)) return null;
 
@@ -156,6 +227,83 @@ function extractNotionPageTitle(page) {
   return null;
 }
 
+function getNotionPageId(page) {
+  const data = getToolData(page);
+  return data?.id ?? page?.id ?? null;
+}
+
+function normalizeTitle(title) {
+  return title?.trim().toLowerCase() ?? '';
+}
+
+function buildTitleProperties(title) {
+  return {
+    title: {
+      title: [
+        {
+          text: {
+            content: title,
+          },
+        },
+      ],
+    },
+  };
+}
+
+async function findNotionPageByTitle(scalekitActions, connectedAccountId, title) {
+  const result = await scalekitActions.executeTool({
+    toolName: 'notion_page_search',
+    connectedAccountId,
+    toolInput: { query: title, page_size: 10 },
+  });
+
+  const targetTitle = normalizeTitle(title);
+  const pages = findResultsArray(result);
+
+  return (
+    pages.find((page) => normalizeTitle(extractNotionPageTitle(page)) === targetTitle) ??
+    pages.find((page) => normalizeTitle(extractNotionPageTitle(page)).includes(targetTitle)) ??
+    null
+  );
+}
+
+async function findOrCreateNotionPage(scalekitActions, connectedAccountId, toolInput, options = {}) {
+  const title = toolInput?.title?.trim();
+  if (!title) throw new Error('notion_find_or_create_page requires a title.');
+
+  const existingPage = await findNotionPageByTitle(scalekitActions, connectedAccountId, title);
+  if (existingPage) {
+    const pageId = getNotionPageId(existingPage);
+    console.log(`[Notion] Found page "${extractNotionPageTitle(existingPage) ?? title}" (${pageId}).`);
+    return { created: false, pageId, title: extractNotionPageTitle(existingPage) ?? title, page: existingPage };
+  }
+
+  const parentPageId = toolInput?.parent_page_id ?? options.defaultParentPageId ?? process.env.NOTION_DEFAULT_PARENT_PAGE_ID;
+  const databaseId = toolInput?.database_id ?? options.defaultDatabaseId ?? process.env.NOTION_DEFAULT_DATABASE_ID;
+
+  if (!parentPageId && !databaseId) {
+    throw new Error(
+      `Notion page "${title}" was not found and cannot be created because no parent_page_id/database_id was provided. Set NOTION_DEFAULT_PARENT_PAGE_ID or NOTION_DEFAULT_DATABASE_ID to enable automatic page creation.`
+    );
+  }
+
+  const createInput = {
+    properties: buildTitleProperties(title),
+    ...(parentPageId ? { parent_page_id: parentPageId } : { database_id: databaseId }),
+  };
+
+  console.log(`[Notion] Page "${title}" not found. Creating it now.`);
+  const page = await scalekitActions.executeTool({
+    toolName: 'notion_page_create',
+    connectedAccountId,
+    toolInput: createInput,
+  });
+  const pageId = getNotionPageId(page);
+  console.log(`[Notion] Created page "${title}" (${pageId}).`);
+
+  return { created: true, pageId, title, page };
+}
+
 async function getNotionAppendTarget(scalekitActions, connectedAccountId, blockId) {
   if (!blockId) return 'unknown page';
 
@@ -183,7 +331,7 @@ async function getNotionAppendTarget(scalekitActions, connectedAccountId, blockI
  * @param {object} toolInput - input matching the tool's parameter schema
  * @returns {object} tool result
  */
-export async function executeNotionTool(scalekitActions, identifier, toolName, toolInput) {
+export async function executeNotionTool(scalekitActions, identifier, toolName, toolInput, options = {}) {
   // Get the connected account ID for this identifier
   const resp = await scalekitActions.getOrCreateConnectedAccount({
     connectionName: 'notion',
@@ -199,6 +347,10 @@ export async function executeNotionTool(scalekitActions, identifier, toolName, t
     throw new Error(
       `Notion account is not connected (status: ${statusName}). Run "npm run auth:setup" and complete the OAuth flow first.`
     );
+  }
+
+  if (toolName === 'notion_find_or_create_page') {
+    return findOrCreateNotionPage(scalekitActions, account.id, toolInput, options);
   }
 
   let appendTarget = null;

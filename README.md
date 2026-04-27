@@ -21,7 +21,7 @@ The agent interprets a free-form task and calls the appropriate tools:
 - `"Search YouTube for Python tutorial channels and append the top 10 to my Research page"`
 
 For YouTube research, the agent:
-1. Finds the target Notion page by name using `notion_data_fetch`
+1. Resolves the target Notion page by name, creating it when a default parent/database is configured
 2. Expands the keyword into semantic search variations using an LLM
 3. Searches YouTube for each variation and deduplicates channels
 4. Fetches subscriber count and channel metadata
@@ -117,7 +117,7 @@ If Notion or YouTube authorization is needed, the actor writes an `AWAITING_*_AU
 
 ## Input Reference
 
-Scalekit credentials (`SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT_SECRET`) are set as actor environment variables, not input fields. The LLM API key can be supplied per run as `llmApiKey`; if omitted, the actor uses the `LLM_API_KEY` environment variable.
+Scalekit credentials (`SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT_SECRET`) are set as actor environment variables, not input fields. The LLM API key can be supplied per run as `llmApiKey`; if omitted, the actor uses the `LLM_API_KEY` environment variable. To let the actor create a missing Notion page, set either `notionDefaultParentPageId` / `NOTION_DEFAULT_PARENT_PAGE_ID` or `notionDefaultDatabaseId` / `NOTION_DEFAULT_DATABASE_ID`.
 
 | Field | Required | Default | Description |
 |---|---|---|---|
@@ -126,6 +126,8 @@ Scalekit credentials (`SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT
 | `llmApiKey` | No | `LLM_API_KEY` env var | API key for the LLM endpoint. Use this when the end user should provide their own key. |
 | `llmBaseUrl` | No | `https://llm.scalekit.cloud` | OpenAI-compatible endpoint base URL |
 | `llmModel` | No | `claude-sonnet-4-6` | Model name passed to the LLM endpoint |
+| `notionDefaultParentPageId` | No | `NOTION_DEFAULT_PARENT_PAGE_ID` env var | Parent page where a missing target page should be created. |
+| `notionDefaultDatabaseId` | No | `NOTION_DEFAULT_DATABASE_ID` env var | Database where a missing target page should be created. Use this instead of a parent page when desired. |
 | `youtubeIdentifier` | No | `shared-youtube` | Scalekit identifier for the shared YouTube connected account |
 | `authTimeoutSeconds` | No | `300` | How long to wait for Notion or YouTube authorization (seconds) |
 | `maxIterations` | No | `10` | Max agent loop iterations |
@@ -161,7 +163,7 @@ apify login
 apify push
 ```
 
-After pushing, set `SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT_SECRET`, and optionally `LLM_API_KEY` in **Actor Settings → Environment variables** in the Apify console.
+After pushing, set `SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT_SECRET`, and optionally `LLM_API_KEY`, `NOTION_DEFAULT_PARENT_PAGE_ID`, or `NOTION_DEFAULT_DATABASE_ID` in **Actor Settings → Environment variables** in the Apify console.
 
 To enable Pay-Per-Event pricing, go to **Actor Settings → Monetisation**:
 

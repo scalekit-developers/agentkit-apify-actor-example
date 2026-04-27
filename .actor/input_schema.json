@@ -38,6 +38,18 @@
       "minimum": 30,
       "maximum": 900
     },
+    "notionDefaultParentPageId": {
+      "title": "Default Notion Parent Page ID",
+      "type": "string",
+      "description": "Optional parent page ID used to create a missing target Notion page. Defaults to NOTION_DEFAULT_PARENT_PAGE_ID when set.",
+      "editor": "textfield"
+    },
+    "notionDefaultDatabaseId": {
+      "title": "Default Notion Database ID",
+      "type": "string",
+      "description": "Optional database ID used to create a missing target Notion page. Defaults to NOTION_DEFAULT_DATABASE_ID when set.",
+      "editor": "textfield"
+    },
     "maxIterations": {
       "title": "Max Agent Iterations",
       "type": "integer",

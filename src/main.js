@@ -33,6 +33,8 @@ try {
     llmBaseUrl = 'https://llm.scalekit.cloud',
     maxIterations = 10,
     authTimeoutSeconds = 300,
+    notionDefaultParentPageId = process.env.NOTION_DEFAULT_PARENT_PAGE_ID,
+    notionDefaultDatabaseId = process.env.NOTION_DEFAULT_DATABASE_ID,
   } = input;
 
   const youtubeIdentifier = 'shared-youtube';
@@ -106,6 +108,8 @@ try {
     scalekitActions: scalekit.actions,
     notionIdentifier,
     youtubeIdentifier,
+    notionDefaultParentPageId,
+    notionDefaultDatabaseId,
     task,
     maxIterations,
     onStep: async (step) => {

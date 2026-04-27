@@ -11,9 +11,10 @@ const ALL_TOOL_DEFINITIONS = [...NOTION_TOOL_DEFINITIONS, ...YOUTUBE_TOOL_DEFINI
 const SYSTEM_PROMPT = `You are a helpful assistant with access to Notion and YouTube tools.
 
 Guidelines:
-- To find a Notion page by name, use notion_data_fetch before reading or writing to it.
+- To find a Notion page by name before writing, use notion_find_or_create_page. If the page does not exist and a default parent/database is configured, this creates it and returns the page ID.
+- To inspect existing Notion pages without creating anything, use notion_page_search.
 - For YouTube channel research, use youtube_search_channels — it handles keyword expansion, search, deduplication, and scoring automatically.
-- To write YouTube research results to Notion, first find the target page with notion_data_fetch, then append formatted blocks with notion_page_content_append.
+- To write YouTube research results to Notion, first resolve the target page with notion_find_or_create_page, then append formatted blocks with notion_page_content_append.
 - Block format for notion_page_content_append: [{"type":"heading_2","text":"..."}, {"type":"bulleted_list_item","text":"..."}, {"type":"divider"}]
 - Be concise and factual. Always report the final result clearly.`;
 
@@ -26,6 +27,8 @@ Guidelines:
  * @param {object} opts.scalekitActions     - scalekit.actions instance
  * @param {string} opts.notionIdentifier    - Scalekit connected account identifier for Notion
  * @param {string} opts.youtubeIdentifier   - Scalekit connected account identifier for YouTube
+ * @param {string} opts.notionDefaultParentPageId - Parent page ID for creating missing pages
+ * @param {string} opts.notionDefaultDatabaseId   - Database ID for creating missing pages
  * @param {string} opts.task                - natural language task from the user
  * @param {number} opts.maxIterations       - max agent loop iterations
  * @param {Function} opts.onStep            - optional callback(step) for logging each step
@@ -37,6 +40,8 @@ export async function runAgent({
   scalekitActions,
   notionIdentifier,
   youtubeIdentifier = 'shared-youtube',
+  notionDefaultParentPageId,
+  notionDefaultDatabaseId,
   task,
   maxIterations = 10,
   onStep = () => {},
@@ -91,6 +96,10 @@ export async function runAgent({
             notionIdentifier,
             toolCall.name,
             toolCall.input,
+            {
+              defaultParentPageId: notionDefaultParentPageId,
+              defaultDatabaseId: notionDefaultDatabaseId,
+            },
           );
         }
         step.output = toolResult;
