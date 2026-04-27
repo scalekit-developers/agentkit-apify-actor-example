@@ -26,7 +26,7 @@
     "llmApiKey": {
       "title": "LLM API Key",
       "type": "string",
-      "description": "API key for the LLM endpoint.",
+      "description": "API key for the LLM endpoint. Optional when LLM_API_KEY is set as an actor environment variable.",
       "isSecret": true,
       "editor": "textfield"
     },
@@ -47,5 +47,5 @@
       "maximum": 50
     }
   },
-  "required": ["llmApiKey", "task"]
+  "required": ["task"]
 }

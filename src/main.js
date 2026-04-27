@@ -42,15 +42,16 @@ try {
   const scalekitEnvUrl = process.env.SCALEKIT_ENV_URL;
   const scalekitClientId = process.env.SCALEKIT_CLIENT_ID;
   const scalekitClientSecret = process.env.SCALEKIT_CLIENT_SECRET;
+  const resolvedLlmApiKey = llmApiKey || process.env.LLM_API_KEY;
 
   if (!task) throw new Error('Input "task" is required.');
   if (!notionIdentifier) throw new Error('Could not determine Apify user ID — cannot identify Notion account.');
-  if (!llmApiKey) throw new Error('Input "llmApiKey" is required.');
+  if (!resolvedLlmApiKey) throw new Error('Set input "llmApiKey" or actor environment variable LLM_API_KEY.');
   if (!scalekitEnvUrl || !scalekitClientId || !scalekitClientSecret) {
     throw new Error('Scalekit credentials missing. Set SCALEKIT_ENV_URL, SCALEKIT_CLIENT_ID, SCALEKIT_CLIENT_SECRET as actor environment variables.');
   }
 
-  const client = new OpenAI({ apiKey: llmApiKey, baseURL: llmBaseUrl });
+  const client = new OpenAI({ apiKey: resolvedLlmApiKey, baseURL: llmBaseUrl });
   const scalekit = new ScalekitClient(scalekitEnvUrl, scalekitClientId, scalekitClientSecret);
   const { liveViewUrl } = await startAuthServer();
 

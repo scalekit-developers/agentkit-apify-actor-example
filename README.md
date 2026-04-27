@@ -117,13 +117,13 @@ If Notion or YouTube authorization is needed, the actor writes an `AWAITING_*_AU
 
 ## Input Reference
 
-Scalekit credentials (`SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT_SECRET`) are set as actor environment variables, not input fields.
+Scalekit credentials (`SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT_SECRET`) are set as actor environment variables, not input fields. The LLM API key can be supplied per run as `llmApiKey`; if omitted, the actor uses the `LLM_API_KEY` environment variable.
 
 | Field | Required | Default | Description |
 |---|---|---|---|
 | `task` | Yes | — | Natural language task, e.g. `"Search YouTube for Python tutorial channels and append the top 10 to my Research page"` |
 | `notionUserEmail` | Yes | — | Email used as the Scalekit identifier for the user's Notion connected account |
-| `llmApiKey` | Yes | — | API key for the LLM endpoint |
+| `llmApiKey` | No | `LLM_API_KEY` env var | API key for the LLM endpoint. Use this when the end user should provide their own key. |
 | `llmBaseUrl` | No | `https://llm.scalekit.cloud` | OpenAI-compatible endpoint base URL |
 | `llmModel` | No | `claude-sonnet-4-6` | Model name passed to the LLM endpoint |
 | `youtubeIdentifier` | No | `shared-youtube` | Scalekit identifier for the shared YouTube connected account |
@@ -161,7 +161,7 @@ apify login
 apify push
 ```
 
-After pushing, set `SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, and `SCALEKIT_CLIENT_SECRET` in **Actor Settings → Environment variables** in the Apify console.
+After pushing, set `SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT_SECRET`, and optionally `LLM_API_KEY` in **Actor Settings → Environment variables** in the Apify console.
 
 To enable Pay-Per-Event pricing, go to **Actor Settings → Monetisation**:
 
