@@ -120,6 +120,60 @@ export const NOTION_TOOL_DEFINITIONS = [
   },
 ];
 
+function getToolData(result) {
+  return result?.data ?? result?.page ?? result;
+}
+
+function getTitleFromRichText(items) {
+  if (!Array.isArray(items)) return null;
+
+  const title = items
+    .map((item) => item.plain_text ?? item.text?.content ?? '')
+    .join('')
+    .trim();
+
+  return title || null;
+}
+
+function extractNotionPageTitle(page) {
+  const data = getToolData(page);
+
+  if (typeof data?.title === 'string' && data.title.trim()) {
+    return data.title.trim();
+  }
+
+  const properties = data?.properties;
+  if (!properties || typeof properties !== 'object') {
+    return null;
+  }
+
+  for (const property of Object.values(properties)) {
+    if (property?.type === 'title') {
+      return getTitleFromRichText(property.title);
+    }
+  }
+
+  return null;
+}
+
+async function getNotionAppendTarget(scalekitActions, connectedAccountId, blockId) {
+  if (!blockId) return 'unknown page';
+
+  try {
+    const page = await scalekitActions.executeTool({
+      toolName: 'notion_page_get',
+      connectedAccountId,
+      toolInput: { page_id: blockId },
+    });
+    const title = extractNotionPageTitle(page);
+
+    return title ? `"${title}" (${blockId})` : `page/block ${blockId}`;
+  } catch (err) {
+    console.warn(`[Notion] Could not resolve append target title for ${blockId}: ${err.message}`);
+    return `page/block ${blockId}`;
+  }
+}
+
 /**
  * Execute a Notion tool via Scalekit's proxy.
  *
@@ -147,11 +201,22 @@ export async function executeNotionTool(scalekitActions, identifier, toolName, t
     );
   }
 
+  let appendTarget = null;
+  if (toolName === 'notion_page_content_append') {
+    appendTarget = await getNotionAppendTarget(scalekitActions, account.id, toolInput?.block_id);
+    const blockCount = Array.isArray(toolInput?.blocks) ? toolInput.blocks.length : 0;
+    console.log(`[Notion] Appending ${blockCount} block(s) to ${appendTarget}.`);
+  }
+
   const result = await scalekitActions.executeTool({
     toolName,
     connectedAccountId: account.id,
     toolInput,
   });
+
+  if (appendTarget) {
+    console.log(`[Notion] Append complete for ${appendTarget}.`);
+  }
 
   return result;
 }
