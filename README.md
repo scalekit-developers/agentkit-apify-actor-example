@@ -43,7 +43,7 @@ For YouTube research, the agent:
 - A [Scalekit](https://scalekit.com) environment with:
   - A Notion connection named `notion`
   - A YouTube connection named `youtube`
-- An OpenAI-compatible LLM endpoint and API key (default: `https://llm.scalekit.cloud` with `claude-sonnet-4-6`)
+- An [Apify](https://apify.com) account (LLM inference is handled by [Apify's OpenRouter proxy](https://apify.com/apify/openrouter) and billed to your Apify credits)
 
 ---
 
@@ -117,15 +117,14 @@ If Notion or YouTube authorization is needed, the actor writes an `AWAITING_*_AU
 
 ## Input Reference
 
-Scalekit credentials (`SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT_SECRET`) are set as actor environment variables, not input fields. The LLM API key can be supplied per run as `llmApiKey`; if omitted, the actor uses the `LLM_API_KEY` environment variable. To let the actor create a missing Notion page, set either `notionDefaultParentPageId` / `NOTION_DEFAULT_PARENT_PAGE_ID` or `notionDefaultDatabaseId` / `NOTION_DEFAULT_DATABASE_ID`.
+Scalekit credentials (`SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT_SECRET`) are set as actor environment variables, not input fields. LLM inference uses [Apify's OpenRouter proxy](https://apify.com/apify/openrouter) by default — no external API key needed; LLM costs are billed to your Apify credits. To let the actor create a missing Notion page, set either `notionDefaultParentPageId` / `NOTION_DEFAULT_PARENT_PAGE_ID` or `notionDefaultDatabaseId` / `NOTION_DEFAULT_DATABASE_ID`.
 
 | Field | Required | Default | Description |
 |---|---|---|---|
 | `task` | Yes | — | Natural language task, e.g. `"Search YouTube for Python tutorial channels and append the top 10 to my Research page"` |
 | `notionUserEmail` | Yes | — | Email used as the Scalekit identifier for the user's Notion connected account |
-| `llmApiKey` | No | `LLM_API_KEY` env var | API key for the LLM endpoint. Use this when the end user should provide their own key. |
-| `llmBaseUrl` | No | `https://llm.scalekit.cloud` | OpenAI-compatible endpoint base URL |
-| `llmModel` | No | `claude-sonnet-4-6` | Model name passed to the LLM endpoint |
+| `llmBaseUrl` | No | `https://openrouter.apify.actor/api/v1` | OpenAI-compatible endpoint. Defaults to Apify's OpenRouter proxy. |
+| `llmModel` | No | `anthropic/claude-sonnet-4-6` | Model name in OpenRouter format (`provider/model`). See [OpenRouter models](https://openrouter.ai/models). |
 | `notionDefaultParentPageId` | No | `NOTION_DEFAULT_PARENT_PAGE_ID` env var | Parent page where a missing target page should be created. |
 | `notionDefaultDatabaseId` | No | `NOTION_DEFAULT_DATABASE_ID` env var | Database where a missing target page should be created. Use this instead of a parent page when desired. |
 | `youtubeIdentifier` | No | `shared-youtube` | Scalekit identifier for the shared YouTube connected account |
@@ -163,7 +162,7 @@ apify login
 apify push
 ```
 
-After pushing, set `SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT_SECRET`, and optionally `LLM_API_KEY`, `NOTION_DEFAULT_PARENT_PAGE_ID`, or `NOTION_DEFAULT_DATABASE_ID` in **Actor Settings → Environment variables** in the Apify console.
+After pushing, set `SCALEKIT_ENV_URL`, `SCALEKIT_CLIENT_ID`, `SCALEKIT_CLIENT_SECRET`, and optionally `NOTION_DEFAULT_PARENT_PAGE_ID` or `NOTION_DEFAULT_DATABASE_ID` in **Actor Settings → Environment variables** in the Apify console. No LLM API key is needed — the actor uses [Apify's OpenRouter proxy](https://apify.com/apify/openrouter) and bills LLM usage to your Apify credits.
 
 To enable Pay-Per-Event pricing, go to **Actor Settings → Monetisation**:
 
