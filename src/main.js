@@ -44,18 +44,26 @@ try {
   const scalekitClientId = process.env.SCALEKIT_CLIENT_ID;
   const scalekitClientSecret = process.env.SCALEKIT_CLIENT_SECRET;
   const apifyToken = process.env.APIFY_TOKEN;
+  const isApifyOpenRouter = llmBaseUrl === 'https://openrouter.apify.actor/api/v1';
+  const llmApiKey = input.llmApiKey || process.env.LLM_API_KEY;
 
   if (!task) throw new Error('Input "task" is required.');
   if (!notionIdentifier) throw new Error('Could not determine Apify user ID — cannot identify Notion account.');
-  if (!apifyToken) throw new Error('APIFY_TOKEN not available. Run this actor on the Apify platform or set APIFY_TOKEN for local development.');
+  if (isApifyOpenRouter && !apifyToken) {
+    throw new Error('APIFY_TOKEN not available. Run this actor on the Apify platform or set APIFY_TOKEN for local development.');
+  }
+  if (!isApifyOpenRouter && !llmApiKey) {
+    throw new Error('An LLM API key is required when using a custom llmBaseUrl. Set input "llmApiKey" or the LLM_API_KEY environment variable.');
+  }
   if (!scalekitEnvUrl || !scalekitClientId || !scalekitClientSecret) {
     throw new Error('Scalekit credentials missing. Set SCALEKIT_ENV_URL, SCALEKIT_CLIENT_ID, SCALEKIT_CLIENT_SECRET as actor environment variables.');
   }
 
   const client = new OpenAI({
     baseURL: llmBaseUrl,
-    apiKey: 'apify-openrouter',
-    defaultHeaders: { Authorization: `Bearer ${apifyToken}` },
+    ...(isApifyOpenRouter
+      ? { apiKey: 'apify-openrouter', defaultHeaders: { Authorization: `Bearer ${apifyToken}` } }
+      : { apiKey: llmApiKey }),
   });
   const scalekit = new ScalekitClient(scalekitEnvUrl, scalekitClientId, scalekitClientSecret);
   const { liveViewUrl } = await startAuthServer();

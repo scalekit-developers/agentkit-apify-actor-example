@@ -23,6 +23,13 @@
       "default": "anthropic/claude-sonnet-4-6",
       "editor": "textfield"
     },
+    "llmApiKey": {
+      "title": "LLM API Key",
+      "type": "string",
+      "description": "API key for a custom LLM endpoint. Only needed when llmBaseUrl is changed from the default Apify OpenRouter proxy. Falls back to LLM_API_KEY env var.",
+      "isSecret": true,
+      "editor": "textfield"
+    },
     "authTimeoutSeconds": {
       "title": "Auth Timeout (seconds)",
       "type": "integer",
