@@ -3,6 +3,8 @@
 An AI agent built as an [Apify actor](https://docs.apify.com/platform/actors) that accepts a single natural language `task` and handles both Notion operations and YouTube research — or both together in one run.
 
 Authentication is handled by [Scalekit](https://scalekit.com), so the actor never manages OAuth tokens directly:
+
+Scalekit provides auth and actions on behalf of users, with 500+ connectors and 20,000+ tools.
 - Per-user Notion accounts identified by `notionUserEmail`
 - A shared YouTube connected account identified by `youtubeIdentifier`
 
