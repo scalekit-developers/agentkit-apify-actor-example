@@ -4,7 +4,7 @@ An AI agent built as an [Apify actor](https://docs.apify.com/platform/actors) th
 
 Authentication is handled by [Scalekit](https://scalekit.com), so the actor never manages OAuth tokens directly:
 
-Scalekit provides auth and actions on behalf of users, with 500+ connectors and 20,000+ tools.
+Scalekit provides auth and actions on behalf of users, with 600+ connectors and 35,000+ tools.
 - Per-user Notion accounts identified by `notionUserEmail`
 - A shared YouTube connected account identified by `youtubeIdentifier`
 
